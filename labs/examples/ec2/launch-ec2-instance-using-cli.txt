@@ -1,0 +1,37 @@
+#Step1: Verify AWS CLI installation
+aws --version
+
+#Step2: Configure AWS CLI
+aws configure
+[Enter Access Key ID, Secret Access Key, Default Region, Default Output Format]
+
+#Step3: Create Security Group
+aws ec2 create-security-group --group-name aws-training-cli-sg --description "AWS Training CLI security group"
+Output: [GroupId: sg-054151ef0265c466e]
+
+#Step4: Allow SSH port
+aws ec2 authorize-security-group-ingress --group-name aws-training-cli-sg --protocol tcp --port 22 --cidr 0.0.0.0/0
+
+#Step5: Create Key Pair
+mkdir ~/aws-training/labs/key
+aws ec2 create-key-pair --key-name aws-training-cli-key --query 'KeyMaterial' --output text > ~/aws-training/labs/key/aws-training-cli-key.pem
+chmod 400 ~/aws-training/labs/key/aws-training-cli-key.pem
+
+#Step6: Launch Instance
+aws ec2 run-instances --image-id ami-099fe766 --security-group-ids sg-054151ef0265c466e --count 1 --instance-type t2.micro --key-name aws-training-cli-key --query 'Instances[0].InstanceId'
+Output: [i-006e44cafc1cc7fc5]
+
+#Step7: Retrieve Public IP
+aws ec2 describe-instances --instance-ids "i-006e44cafc1cc7fc5" --query 'Reservations[0].Instances[0].PublicIpAddress'
+Output: [13.234.21.121]
+
+#Step8: Connect to the Instance
+ssh -i [key file path] [username@hostname]
+ssh -i aws-training-cli-key.pem ubuntu@13.126.53.169
+
+#Step9: Retrieve Instance Status
+aws ec2 describe-instances --instance-ids "i-006e44cafc1cc7fc5" --query 'Reservations[0].Instances[0].State.Name'
+
+#Step10: Start/Stop the Instance
+aws ec2 start-instances --instance-ids "i-006e44cafc1cc7fc5"
+aws ec2 stop-instances --instance-ids "i-006e44cafc1cc7fc5"

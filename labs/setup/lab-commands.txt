@@ -1,0 +1,112 @@
+#Sharing Directories between local to VM
+#Create folder share in the VirtualBox
+cd /home/awslab/aws-training/labs
+sudo mount -t vboxsf socgen-cloud-aws /home/awslab/aws-training/labs
+
+#SSH
+ssh -i [key file path] [username@hostname]
+
+#Java Installation
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get install oracle-java8-installer
+java -version
+
+#Tomcat Installation (Run manually)
+mkdir ~/aws-training
+mkdir -r ~/aws-training/programs
+cd ~/aws-training/programs
+
+curl -O https://www-us.apache.org/dist/tomcat/tomcat-8/v8.5.37/bin/apache-tomcat-8.5.37.tar.gz
+tar xzvf apache-tomcat-8*tar.gz -C ~/aws-training/programs
+cd apache-tomcat-8.5.37/bin
+sudo ./startup.sh
+
+#Tomcat Installation (Runs as service)
+sudo apt-get install tomcat8
+sudo apt-get install tomcat8-docs
+sudo apt-get install tomcat8-examples
+sudo apt-get install tomcat8-admin
+
+#Tomcat Configuration (Create user to access admin web console)
+sudo vi /var/lib/tomcat8/conf/tomcat-users.xml
+
+<role rolename="admin-gui"/>
+<role rolename="manager-gui"/>
+<user username="tomcat" password="tomcat" roles="manager-gui,admin-gui"/>
+
+#Tomcat server restart
+sudo service tomcat8 restart
+
+#Tomcat Webapps Directory
+/var/lib/tomcat8/webapps/
+
+##Upgrade pip install
+sudo pip install --upgrade pip
+
+#Update AWS CLI (aws-box image)
+pip install awscli --upgrade --user
+
+#AWS CLI instllation
+sudo apt  install awscli
+aws --version
+
+#Configure AWS CLI
+aws configure
+AWS Access Key ID: [Enter root or iam user access key id]
+AWS Secret Access Key: [Enter root or iam user secret access key]
+Default region name: [Optional. Enter default region name e.g: ap-south-1]
+
+#Clone Git repository
+git clone https://github.com/asaravanakumar/socgen_cloud-aws.git
+
+#MySql database connection
+mysql -h <rds-dns-name> -u <username> -p
+[Enter password in the prompt]
+
+#Run Employee Management App (Manually)
+java -jar dist/EmployeeWebApp.jar --server.port=8080 --spring.config.location=dist/application.properties
+
+#Run Employee Management App as service
+#Step 1: Create a Service
+sudo vim /etc/systemd/system/emp-webapp.service
+
+[Unit]
+Description=Employee Management WebApplication
+[Service]
+User=ubuntu
+#change this to your workspace
+WorkingDirectory=/home/ubuntu/aws-training/labs/EmployeeWebApp
+#path to executable
+#executable is a bash script which calls jar file
+ExecStart=/home/ubuntu/aws-training/labs/EmployeeWebApp/emp-webapp.sh
+SuccessExitStatus=143
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=5
+[Install]
+WantedBy=multi-user.target
+
+#Step 2: Create a Bash Script to Call Your Service
+vim /home/ubuntu/aws-training/labs/EmployeeWebApp/emp-webapp.sh
+
+#!/bin/sh
+java -jar dist/EmployeeWebApp.jar --server.port=8080 --spring.config.location=dist/application.properties
+
+#Step 3: Give execute permission to script
+sudo chmod u+x /home/ubuntu/aws-training/labs/EmployeeWebApp/emp-webapp.sh
+
+#Step 4: Start the service
+sudo systemctl daemon-reload
+sudo systemctl enable emp-webapp.service
+sudo systemctl start emp-webapp
+sudo systemctl status emp-webapp
+
+#Step 5: Setup Logging
+sudo journalctl --unit=emp-webapp
+
+sudo journalctl -f -n 1000 -u emp-webapp
+sudo journalctl -f -u emp-webapp
+
+#Step 6: Stop the service
+sudo systemctl stop emp-webapp

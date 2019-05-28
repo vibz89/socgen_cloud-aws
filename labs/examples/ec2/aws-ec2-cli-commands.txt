@@ -1,0 +1,8 @@
+#List AWS EC2 regions
+aws ec2 describe-regions
+
+#List AWS EC2 Availability Zones
+aws ec2 describe-availability-zones --region ap-south-1
+
+#List AWS EC2 Instances
+aws ec2 describe-instances

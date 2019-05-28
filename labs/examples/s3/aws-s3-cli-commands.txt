@@ -1,0 +1,8 @@
+#List S3 buckets
+aws s3 ls
+
+#Create S3 bucket
+aws s3 mb s3://awslab-s3-cli
+
+#Upload local file to S3 bucket
+aws s3 cp ~/aws-training/labs/data/HappyFace.jpg s3://awslab-s3-cli/
